@@ -312,6 +312,8 @@ typedef NSUInteger NYPRExtraMediaStates;
 {
     [self stopAndTeardownAudioPlayer];
 
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"RemoteControlEventNotification" object:nil];
+
     // unsubscribe from remote control notifications?
     
     //[super dealloc];
