@@ -64,8 +64,8 @@ static PRXPlayer* sharedPlayerInstance;
     [self stopObservingPlayer:self.player];
     [self stopObservingPlayerItem:self.currentPlayerItem];
 
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"AVAudioSessionRouteChangeNotification" object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"AVAudioSessionInterruptionNotification" object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionRouteChangeNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionInterruptionNotification object:nil];
 }
 
 #pragma mark - General player interface
