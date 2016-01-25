@@ -15,7 +15,7 @@
  ******************************************************************************/
 package org.prx.playerhater.util;
 
-import player.wikitroop.wikiseda.BuildConfig;
+import com.saw.radioapp.BuildConfig;
 
 public class Log {
 

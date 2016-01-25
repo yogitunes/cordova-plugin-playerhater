@@ -15,7 +15,7 @@
  ******************************************************************************/
 package org.prx.playerhater.plugins;
 
-import player.wikitroop.wikiseda.R;
+import com.saw.radioapp.R;
 import android.annotation.TargetApi;
 import android.app.Notification;
 import android.net.Uri;
