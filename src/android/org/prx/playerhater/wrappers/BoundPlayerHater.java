@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright 2013 Chris Rhoden, Rebecca Nesson, Public Radio Exchange
- * 
+ * Copyright 2013-2014 Chris Rhoden, Rebecca Nesson, Public Radio Exchange
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -72,13 +72,16 @@ public class BoundPlayerHater extends PlayerHater {
 				@Override
 				public void run() {
 					synchronized (BoundPlayerHater.class) {
-						((ServerPlayerHater) sPlayerHater).slurp(SongHost
-								.localSongs());
-						sApplicationContext.unbindService(sServiceConnection);
+						if (sPlayerHater != null) {
+							((ServerPlayerHater) sPlayerHater).slurp(SongHost
+									.localSongs());
+						}
+						if (sServiceConnection != null && sApplicationContext != null) {
+							sApplicationContext.unbindService(sServiceConnection);
+						}
 						sPlayerHater = null;
 					}
 				}
-
 			};
 		}
 		return sRunnable;
@@ -111,7 +114,7 @@ public class BoundPlayerHater extends PlayerHater {
 		getInstances().remove(instance);
 		if (getInstances().size() < 1) {
 			getHandler().removeCallbacks(getDisconnectRunnable());
-			getHandler().postDelayed(getDisconnectRunnable(), 2000);
+			getHandler().postDelayed(getDisconnectRunnable(), 0);
 		}
 	}
 
@@ -179,8 +182,7 @@ public class BoundPlayerHater extends PlayerHater {
 				try {
 					server.setClient(getPlayerHaterClient());
 				} catch (RemoteException e) {
-					throw new IllegalStateException("Server has gone away...",
-							e);
+					throw new IllegalStateException("Server has gone away...", e);
 				}
 
 				sPlayerHater = new ServerPlayerHater(server);

@@ -64,6 +64,9 @@ public class SongHost {
 	}
 
 	static Remote remote() {
+		if (sRemote == null) { 
+			return new NullRemote(); 
+		}
 		return sRemote;
 	}
 
@@ -100,6 +103,25 @@ public class SongHost {
 			getSongs().put(tag, song);
 			return song;
 		}
+	}
+	
+	public static Song getSong(int tag, Bundle songData) { 
+		Song song = getSong(tag); 
+		if (song instanceof RemoteSong) { 
+			((RemoteSong) song).setSong(Songs.fromBundle(songData));
+		}
+		return song; 
+	}
+	
+	public static Song getLocalSong(int tag) { 
+		Song song = getSongs().get(tag); 
+		if (song instanceof RemoteSong) { 
+			song = ((RemoteSong) song).getSong(); 
+		}
+		if (song == null) { 
+			throw new IllegalStateException("No locally stored song data available."); 
+		}
+		return song; 
 	}
 
 	private static SparseArray<Song> getSongs() {
@@ -204,5 +226,45 @@ public class SongHost {
 		public String getSongAlbumTitle(int tag) throws RemoteException {
 			return mServer.getSongAlbumTitle(tag);
 		}
+	}
+	
+	private static class NullRemote implements Remote {
+
+		@Override
+		public Uri getSongAlbumArt(int tag) throws RemoteException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Uri getSongUri(int tag) throws RemoteException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public String getSongAlbumTitle(int tag) throws RemoteException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public String getSongTitle(int tag) throws RemoteException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public String getSongArtist(int tag) throws RemoteException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Bundle getSongExtra(int tag) throws RemoteException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		
 	}
 }

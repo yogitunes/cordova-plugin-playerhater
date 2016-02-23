@@ -19,7 +19,9 @@ import java.io.IOException;
 
 import org.prx.playerhater.util.Log;
 
+import android.content.ContentProviderClient;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnBufferingUpdateListener;
 import android.media.MediaPlayer.OnCompletionListener;
@@ -29,10 +31,15 @@ import android.media.MediaPlayer.OnPreparedListener;
 import android.media.MediaPlayer.OnSeekCompleteListener;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
+import android.os.PowerManager;
 
 public class StatelyPlayer extends Player implements OnBufferingUpdateListener,
 		OnCompletionListener, OnErrorListener, OnInfoListener,
 		OnPreparedListener, OnSeekCompleteListener {
+
+    private static final String PERMISSION = "android.permission.WAKE_LOCK";
+    private static final int GRANTED = PackageManager.PERMISSION_GRANTED;
+    private static final int WAKE_LOCK = PowerManager.PARTIAL_WAKE_LOCK;
 
 	/**
 	 * An invalid state for a {@linkplain MediaPlayer} to be in.
@@ -67,7 +74,7 @@ public class StatelyPlayer extends Player implements OnBufferingUpdateListener,
 
 	/**
 	 * The state a {@linkplain MediaPlayer} is in when
-	 * {@linkplain #prepareAsync()} is complete or when {{@link #prepare()} is
+	 * {@linkplain #prepareAsync()} is complete or when {prepare()} is
 	 * called.
 	 */
 	public static final int PREPARED = 8;
@@ -159,8 +166,9 @@ public class StatelyPlayer extends Player implements OnBufferingUpdateListener,
 
 	private boolean mInErrorCallback;
 
-	public StatelyPlayer() {
-		mMediaPlayer = new MediaPlayerEnhanced();
+	public StatelyPlayer(Context context) {
+		mMediaPlayer = new MediaPlayer();
+        setWakeLock(context);
 		setState(IDLE);
 		mListenerCollection = new ListenerCollection();
 		getBarePlayer().setOnBufferingUpdateListener(this);
@@ -384,9 +392,9 @@ public class StatelyPlayer extends Player implements OnBufferingUpdateListener,
 				@Override
 				public void run() {
 					synchronized (StatelyPlayer.this) {
+                        final ContentProviderClient contentProviderClient = context.getContentResolver().acquireContentProviderClient(uri);
 						try {
-							ParcelFileDescriptor fd = context
-									.getContentResolver().openFileDescriptor(
+							ParcelFileDescriptor fd = contentProviderClient.openFile(
 											uri, "r");
 							mMediaPlayer.setDataSource(fd.getFileDescriptor());
 							int state = getInternalState();
@@ -406,19 +414,19 @@ public class StatelyPlayer extends Player implements OnBufferingUpdateListener,
 							} catch (Exception e1) {
 								Log.e("Whoops", e1);
 							}
-						}
-					}
+						} finally {
+                            contentProviderClient.release();
+                        }
+                    }
 				}
 			}).start();
-		} else {
-			// bkammin - modified to make local file playback work -- file needs absolute path, without file:// designator
-			if (uri.getScheme().equalsIgnoreCase("file")){
-				mMediaPlayer.setDataSource(uri.getPath());
-			} else {
+		} else if (uri.getScheme().equals("http") || uri.getScheme().equals("https")) {
 				mMediaPlayer.setDataSource(uri.toString());
-			}
-			setState(INITIALIZED);
-		}
+				setState(INITIALIZED);
+		} else { 
+			mMediaPlayer.setDataSource(context, uri); 
+			setState(INITIALIZED); 
+		} 
 	}
 
 	@Override
@@ -540,6 +548,17 @@ public class StatelyPlayer extends Player implements OnBufferingUpdateListener,
 	public boolean isWaitingToPlay() {
 		return super.isWaitingToPlay() || mBuffering;
 	}
+
+    private void setWakeLock(Context context) {
+        PackageManager pm = context.getPackageManager();
+        String packageName = context.getPackageName();
+
+        if (pm.checkPermission(PERMISSION, packageName) == GRANTED) {
+            mMediaPlayer.setWakeMode(context, WAKE_LOCK);
+        } else {
+            Log.d("You need to request wake lock permission to enable wake locking during playback.");
+        }
+    }
 
 	protected synchronized MediaPlayer getBarePlayer() {
 		return mMediaPlayer;
