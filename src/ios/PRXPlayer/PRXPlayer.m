@@ -783,6 +783,10 @@ static PRXPlayer* sharedPlayerInstance;
     PRXLog(@"Reachability did change from %d to %d %@", oldReachability, newReachability, [NSDate date]);
     if (newReachability == NotReachable) {
         [self keepAliveInBackground];
+    } else {
+        [self stopPlayerAndRetry];
+    }
+    /*
     } else if (newReachability == ReachableViaWiFi) {
         if (oldReachability == NotReachable) {      // if we just got a connection back, we may want to restart playing
             [self stopPlayerAndRetry];
@@ -794,6 +798,7 @@ static PRXPlayer* sharedPlayerInstance;
             [self stopPlayerAndRetry];
         }
     }
+     */
 }
 
 - (void) stopPlayerAndRetry {
