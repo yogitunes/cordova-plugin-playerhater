@@ -567,7 +567,8 @@ static PRXPlayer* sharedPlayerInstance;
             dateAtAudioPlaybackInterruption = [NSDate date];
         } else {
             PRXLog(@"...and was a remote file, but we still have connectivity...");
-            [self reloadAndPlayPlayable:self.currentPlayable];
+            // TODO Just a dirty workaround for iOS 10 Issue reporting empty buffer and instantly reconnects
+            // [self reloadAndPlayPlayable:self.currentPlayable];
         }
     }
 
