@@ -34,7 +34,7 @@ public class PlaybackService extends PlayerHaterService implements
 	public void onCreate() {
 		super.onCreate();
 		mMediaPlayerPool = MediaPlayerPool
-				.getInstance(PlaylistSupportingPlayer.class);
+				.getInstance(getApplicationContext(), PlaylistSupportingPlayer.class);
 	}
 
 	@Override
@@ -211,10 +211,11 @@ public class PlaybackService extends PlayerHaterService implements
 	}
 
 	@Override
-	synchronized protected PlaylistSupportingPlayer getMediaPlayer() {
-		if (peekMediaPlayer() == null) {
-			return null;
-		}
-		return peekMediaPlayer();
-	}
+    synchronized protected PlaylistSupportingPlayer getMediaPlayer() {
+        if (peekMediaPlayer() == null) {
+            PlaylistSupportingPlayer player = mMediaPlayerPool.getPlayer(getApplicationContext(), nowPlaying().getUri());
+            setMediaPlayer(player);
+        }
+        return peekMediaPlayer();
+    }
 }

@@ -567,7 +567,8 @@ static PRXPlayer* sharedPlayerInstance;
             dateAtAudioPlaybackInterruption = [NSDate date];
         } else {
             PRXLog(@"...and was a remote file, but we still have connectivity...");
-            [self reloadAndPlayPlayable:self.currentPlayable];
+            // TODO Just a dirty workaround for iOS 10 Issue reporting empty buffer and instantly reconnects
+            // [self reloadAndPlayPlayable:self.currentPlayable];
         }
     }
 
@@ -783,6 +784,10 @@ static PRXPlayer* sharedPlayerInstance;
     PRXLog(@"Reachability did change from %d to %d %@", oldReachability, newReachability, [NSDate date]);
     if (newReachability == NotReachable) {
         [self keepAliveInBackground];
+    } else {
+        [self stopPlayerAndRetry];
+    }
+    /*
     } else if (newReachability == ReachableViaWiFi) {
         if (oldReachability == NotReachable) {      // if we just got a connection back, we may want to restart playing
             [self stopPlayerAndRetry];
@@ -794,6 +799,7 @@ static PRXPlayer* sharedPlayerInstance;
             [self stopPlayerAndRetry];
         }
     }
+     */
 }
 
 - (void) stopPlayerAndRetry {

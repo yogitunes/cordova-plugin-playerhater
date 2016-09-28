@@ -2,7 +2,7 @@ var exec = require("cordova/exec");
 
 /**
  * This is a global variable called exposed by cordova
- */    
+ */
 var AudioPlayer = function(){};
 
 AudioPlayer.prototype.configure = function(success, error) {
@@ -34,7 +34,7 @@ AudioPlayer.prototype.hardStop = function(success, error) {
 };
 
 AudioPlayer.prototype.setaudioinfo = function(success, error, json) {
-  exec(success, error, "AudioPlayerPlugin", "setaudioinfo", json);
+  exec(success, error, "AudioPlayerPlugin", "setaudioinfo", [json]);
 };
 
 AudioPlayer.prototype.seek = function(success, error, interval) {

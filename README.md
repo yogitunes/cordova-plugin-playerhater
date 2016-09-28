@@ -1,3 +1,8 @@
+*Changes to Original Upstream*
+
+- Updated Libraries
+- Fix for iOS 10 issue
+
 # PlayerHater Audio Player PhoneGap/Cordova Plugin
 
 ### Platform Support
