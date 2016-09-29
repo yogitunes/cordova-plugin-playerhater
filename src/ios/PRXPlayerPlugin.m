@@ -8,6 +8,7 @@
 #include <objc/runtime.h>
 #import "CDVSound.h"
 #import "PRXPlayerPlugin.h"
+#import <MediaPlayer/MediaPlayer.h>
 
 @implementation PRXPlayerPlugin
 @synthesize mAudioHandler;
@@ -89,8 +90,20 @@ void remoteControlReceivedWithEventImp(id self, SEL _cmd, UIEvent * event) {
 
         [[NSNotificationCenter defaultCenter]   addObserver:self selector:@selector(_onAudioStreamUpdate:) name:@"AudioStreamUpdateNotification" object:nil];
         [[NSNotificationCenter defaultCenter]   addObserver:self selector:@selector(_onAudioProgressUpdate:) name:@"AudioProgressNotification" object:nil];
-        [[NSNotificationCenter defaultCenter]   addObserver:self selector:@selector(_onAudioSkipPrevious:) name:@"AudioSkipPreviousNotification" object:nil];
-        [[NSNotificationCenter defaultCenter]   addObserver:self selector:@selector(_onAudioSkipNext:) name:@"AudioSkipNextNotification" object:nil];
+//        [[NSNotificationCenter defaultCenter]   addObserver:self selector:@selector(_onAudioSkipPrevious:) name:@"AudioSkipPreviousNotification" object:nil];
+//        [[NSNotificationCenter defaultCenter]   addObserver:self selector:@selector(_onAudioSkipNext:) name:@"AudioSkipNextNotification" object:nil];
+      
+      MPRemoteCommandCenter * remote = [MPRemoteCommandCenter sharedCommandCenter];
+      
+
+      [remote.nextTrackCommand addTarget:self action:@selector(_onAudioSkipNext:)];
+      [remote.previousTrackCommand addTarget:self action:@selector(_onAudioSkipPrevious:)];
+      
+      [remote.likeCommand addTarget:self action:@selector(_onAudioLike)];
+      [remote.dislikeCommand addTarget:self action:@selector(_onAudioDislike)];
+      
+      [remote.changePlaybackPositionCommand addTarget:self action:@selector(_onAudioScrub:)];
+    
     }
 }
 
@@ -121,6 +134,17 @@ void remoteControlReceivedWithEventImp(id self, SEL _cmd, UIEvent * event) {
     [[NSNotificationCenter defaultCenter] removeObserver:self name:CDVLocalNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:@"UIApplicationDidFinishLaunchingNotification" object:nil];
 
+  MPRemoteCommandCenter * remote = [MPRemoteCommandCenter sharedCommandCenter];
+  
+  
+  [remote.nextTrackCommand removeTarget:self action:@selector(_onAudioSkipNext:)];
+  [remote.previousTrackCommand removeTarget:self action:@selector(_onAudioSkipPrevious:)];
+  
+  [remote.likeCommand removeTarget:self action:@selector(_onAudioLike)];
+  [remote.dislikeCommand removeTarget:self action:@selector(_onAudioDislike)];
+  
+  [remote.changePlaybackPositionCommand removeTarget:self action:@selector(_onAudioScrub:)];
+  
     if ([[UIApplication sharedApplication] respondsToSelector:@selector(endReceivingRemoteControlEvents)]){
       [[UIApplication sharedApplication] endReceivingRemoteControlEvents];
     }
@@ -304,6 +328,24 @@ void remoteControlReceivedWithEventImp(id self, SEL _cmd, UIEvent * event) {
     }
 
     [self->mAudioHandler setAudioInfo:title artist:artist artwork:url];
+  MPRemoteCommandCenter * remote = [MPRemoteCommandCenter sharedCommandCenter];
+  
+  NSArray * can = [info objectForKey:@"can"];
+  if(can != nil) {
+    remote.changePlaybackPositionCommand.enabled = [can containsObject:@"scrub"];
+    remote.previousTrackCommand.enabled = [can containsObject:@"previous"];
+    remote.nextTrackCommand.enabled = [can containsObject:@"next"];
+    
+    remote.likeCommand.enabled = [can containsObject:@"like"];
+    remote.dislikeCommand.enabled = [can containsObject:@"dislike"];
+  } else {
+    remote.changePlaybackPositionCommand.enabled = YES;
+    remote.previousTrackCommand.enabled = YES;
+    remote.nextTrackCommand.enabled = YES;
+    
+    remote.likeCommand.enabled = NO;
+    remote.dislikeCommand.enabled = NO;
+  }
 }
 
 #pragma mark Audio playback helper functions
@@ -398,6 +440,22 @@ void remoteControlReceivedWithEventImp(id self, SEL _cmd, UIEvent * event) {
     [self _sendPluginResult:pluginResult callbackId:_callbackId];
 }
 
+
+- (void)_onAudioLike {
+  NSDictionary * o = @{ @"type" : @"like" };
+  CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:o];
+  [self _sendPluginResult:pluginResult callbackId:_callbackId];
+}
+
+- (void)_onAudioDislike {
+  NSDictionary * o = @{ @"type" : @"dislike" };
+  CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:o];
+  [self _sendPluginResult:pluginResult callbackId:_callbackId];
+}
+
+- (void)_onAudioScrub:(MPChangePlaybackPositionCommandEvent*)event {
+  [self->mAudioHandler seekTo:event.positionTime*1000];
+}
 
 #pragma mark Wakeup handlers
 
