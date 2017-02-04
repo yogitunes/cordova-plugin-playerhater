@@ -331,8 +331,8 @@ void remoteControlReceivedWithEventImp(id self, SEL _cmd, UIEvent * event) {
   MPRemoteCommandCenter * remote = [MPRemoteCommandCenter sharedCommandCenter];
   
   NSArray * can = [info objectForKey:@"can"];
-  if(can != nil) {
-    remote.changePlaybackPositionCommand.enabled = [can containsObject:@"scrub"];
+  if(can != nil) {
+    remote.changePlaybackPositionCommand.enabled = [can containsObject:@"scrub"];
     remote.previousTrackCommand.enabled = [can containsObject:@"previous"];
     remote.nextTrackCommand.enabled = [can containsObject:@"next"];
     
