@@ -12,7 +12,10 @@
 
     <js-module src="www/audioplayer.js" name="AudioPlayer"> 
       <clobbers target="audioplayer"/> 
-    </js-module> 
+    </js-module>
+
+    <dependency id="cordova-plugin-media" />
+    <dependency id="cordova-plugin-network-information" />
 
     <!-- android -->
     <platform name="android">
